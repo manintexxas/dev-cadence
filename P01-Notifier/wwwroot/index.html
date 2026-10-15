@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirim Email - .NET Notifier</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <main class="main-container">
+        <article class="card">
+            <header>
+                <h1>Kirim Email Notifikasi</h1>
+            </header>
+            
+            <section>
+                <form id="emailForm">
+                    <div class="form-group">
+                        <label for="receiver">Masukkan email</label>
+                        <input 
+                            type="email" 
+                            id="receiver" 
+                            name="receiver" 
+                            placeholder="example@gmail.com" 
+                            required 
+                            autocomplete="email"
+                        />
+                    </div>
+                    
+                    <button type="submit" id="btnSend">Send Email</button>
+                </form>
+            </section>
+        </article>
+    </main>
+
+    <!-- Modal Pop-up Status -->
+    <div id="statusModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-card">
+            <header>
+                <h3 id="modalTitle"></h3>
+            </header>
+            <section>
+                <p id="modalMessage"></p>
+            </section>
+            <footer>
+                <button type="button" id="btnCloseModal" class="btn-close">Tutup</button>
+            </footer>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
