@@ -12,6 +12,8 @@ type Response struct {
 	Data    any    `json:"data,omitempty"`
 }
 
+var manager = NewPersonManager()
+
 func registerPersonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -35,7 +37,7 @@ func registerPersonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	person, err := NewPerson(dto.RawName, dto.RawAge)
+	person, err := manager.NewPerson(dto.RawName, dto.RawAge)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Response{

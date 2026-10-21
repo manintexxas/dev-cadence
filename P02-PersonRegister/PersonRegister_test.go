@@ -6,10 +6,11 @@ import (
 )
 
 func TestNewPerson_Success(t *testing.T) {
+	manager := NewPersonManager() 
 	name := "  Agung Pratama  "
 	age := 25
 
-	person, err := NewPerson(name, age)
+	person, err := manager.NewPerson(name, age) 
 	if err != nil {
 		t.Fatalf("diharapkan sukses, tetapi mendapatkan error: %v", err)
 	}
@@ -28,7 +29,8 @@ func TestNewPerson_Success(t *testing.T) {
 }
 
 func TestNewPerson_InvalidName_Empty(t *testing.T) {
-	_, err := NewPerson("   ", 20)
+	manager := NewPersonManager()
+	_, err := manager.NewPerson("   ", 20)
 	if err == nil {
 		t.Fatal("diharapkan error untuk nama kosong, tetapi mendapatkan nil")
 	}
@@ -39,7 +41,8 @@ func TestNewPerson_InvalidName_Empty(t *testing.T) {
 }
 
 func TestNewPerson_InvalidAge_Under18(t *testing.T) {
-	_, err := NewPerson("Budi", 17)
+	manager := NewPersonManager()
+	_, err := manager.NewPerson("Budi", 17)
 	if err == nil {
 		t.Fatal("diharapkan error untuk umur di bawah 18, tetapi mendapatkan nil")
 	}
@@ -50,13 +53,15 @@ func TestNewPerson_InvalidAge_Under18(t *testing.T) {
 }
 
 func TestNewPerson_DuplicateNameInMap(t *testing.T) {
+	manager := NewPersonManager() 
 	uniqueName := "Dedi Kurniawan"
-	_, err := NewPerson(uniqueName, 30)
+	
+	_, err := manager.NewPerson(uniqueName, 30)
 	if err != nil {
 		t.Fatalf("pendaftaran pertama harus sukses, dapat error: %v", err)
 	}
 
-	_, err = NewPerson("  dedi kurniawan  ", 28)
+	_, err = manager.NewPerson("  dedi kurniawan  ", 28)
 	if err == nil {
 		t.Fatal("diharapkan error untuk nama duplikat, tetapi pendaftaran kedua lolos")
 	}

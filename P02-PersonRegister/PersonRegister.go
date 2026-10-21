@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
@@ -13,7 +14,14 @@ var (
 	ErrInvalidRange = errors.New("Input is out of range")
 )
 
-var registerName = make(map[string]bool)
+type PersonManager struct {
+	mu           sync.Mutex
+	registerName map[string]bool
+}
+
+func NewPersonManager() *PersonManager {
+	return &PersonManager{registerName: make(map[string]bool)}
+}
 
 type Person struct {
 	id   string
@@ -21,14 +29,14 @@ type Person struct {
 	age  int
 }
 
-func genrateId() string {
+func generateId() string {
 	alphabeth := "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 	id, _ := gonanoid.Generate(alphabeth, 4)
 
 	return id
 }
 
-func cleanedinput(input string) (string, error) {
+func cleanedInput(input string) (string, error) {
 	trimmed := strings.TrimSpace(input)
 
 	if trimmed == "" {
@@ -40,7 +48,7 @@ func cleanedinput(input string) (string, error) {
 }
 
 func setName(input string) (string, error) {
-	name, err := cleanedinput(input)
+	name, err := cleanedInput(input)
 	if err != nil {
 		return "", err
 	}
@@ -73,7 +81,7 @@ func (p *Person) Age() int {
 	return p.age
 }
 
-func NewPerson(rawName string, rawAge int) (*Person, error) {
+func (m *PersonManager) NewPerson(rawName string, rawAge int) (*Person, error) {
 	name, err := setName(rawName)
 	if err != nil {
 		return nil, err
@@ -84,14 +92,17 @@ func NewPerson(rawName string, rawAge int) (*Person, error) {
 		return nil, err
 	}
 
-	if registerName[name] {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if m.registerName[name] {
 		return nil, fmt.Errorf("%w: Name already in use", ErrInvalidInput)
 	}
 
-	registerName[name] = true
+	m.registerName[name] = true
 
 	return &Person{
-		id:   genrateId(),
+		id:   generateId(),
 		name: name,
 		age:  age,
 	}, nil
