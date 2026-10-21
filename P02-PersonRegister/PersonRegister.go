@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"sync"
 
@@ -12,6 +13,8 @@ import (
 var (
 	ErrInvalidInput = errors.New("Input is invalid")
 	ErrInvalidRange = errors.New("Input is out of range")
+
+	safeNameRegex = regexp.MustCompile(`^[a-zA-Z\s'\-]+$`)
 )
 
 type PersonManager struct {
@@ -30,8 +33,8 @@ type Person struct {
 }
 
 func generateId() string {
-	alphabeth := "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-	id, _ := gonanoid.Generate(alphabeth, 4)
+	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+	id, _ := gonanoid.Generate(alphabet, 4)
 
 	return id
 }
@@ -48,21 +51,33 @@ func cleanedInput(input string) (string, error) {
 }
 
 func setName(input string) (string, error) {
+	const minName = 2
+	const maxName = 50
+
 	name, err := cleanedInput(input)
 	if err != nil {
 		return "", err
 	}
 
-	return name, nil
+	if len(input) < minName || len(input) > maxName {
+		return "", fmt.Errorf("%w: name length must be between %d and %d characters", ErrInvalidInput, minName, maxName)
+	}
+
+	if !safeNameRegex.MatchString(name) {
+		return "", fmt.Errorf("%w: name contains invalid symbols or emojis", ErrInvalidInput)
+	}
 
 }
 
 func setAge(input int) (int, error) {
-	if input == 0 {
-		return 0, fmt.Errorf("%w: Age cannot be empty", ErrInvalidRange)
+	const minAge = 18
+	const maxAge = 99
 
-	} else if input < 18 {
-		return 0, fmt.Errorf("%w: Age under 18", ErrInvalidRange)
+	if input <= 0 {
+		return 0, fmt.Errorf("%w: Age cannot be empty or negative", ErrInvalidRange)
+
+	} else if input < minAge || input > maxAge {
+		return 0, fmt.Errorf("%w: Age must be between %d and %d", ErrInvalidRange, minAge, maxAge)
 
 	}
 
