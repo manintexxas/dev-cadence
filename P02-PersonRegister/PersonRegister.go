@@ -14,29 +14,26 @@ var (
 	ErrInvalidInput = errors.New("Input is invalid")
 	ErrInvalidRange = errors.New("Input is out of range")
 
-	safeNameRegex = regexp.MustCompile(`^[a-zA-Z\s'\-]+$`)
+	safeNameRegex = regexp.MustCompile(`^[\p{L}\s'\-]+$`)
 )
 
 type PersonManager struct {
-	mu           sync.Mutex
+	sync.Mutex
 	registerName map[string]bool
+	registerID   map[string]string
 }
 
 func NewPersonManager() *PersonManager {
-	return &PersonManager{registerName: make(map[string]bool)}
+	return &PersonManager{
+		registerName: make(map[string]bool),
+		registerID:   make(map[string]string),
+	}
 }
 
 type Person struct {
 	id   string
 	name string
 	age  int
-}
-
-func generateId() string {
-	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-	id, _ := gonanoid.Generate(alphabet, 4)
-
-	return id
 }
 
 func cleanedInput(input string) (string, error) {
@@ -47,41 +44,39 @@ func cleanedInput(input string) (string, error) {
 	}
 
 	return strings.ToUpper(trimmed), nil
-
 }
 
-func setName(input string) (string, error) {
+func (p *Person) setName(input string) error {
 	const minName = 2
 	const maxName = 50
 
 	name, err := cleanedInput(input)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	if len(input) < minName || len(input) > maxName {
-		return "", fmt.Errorf("%w: name length must be between %d and %d characters", ErrInvalidInput, minName, maxName)
+	if len(name) < minName || len(name) > maxName {
+		return fmt.Errorf("%w: name length must be between %d and %d characters", ErrInvalidInput, minName, maxName)
 	}
 
 	if !safeNameRegex.MatchString(name) {
-		return "", fmt.Errorf("%w: name contains invalid symbols or emojis", ErrInvalidInput)
+		return fmt.Errorf("%w: name contains invalid symbols or emojis", ErrInvalidInput)
 	}
 
+	p.name = name
+	return nil
 }
 
-func setAge(input int) (int, error) {
+func (p *Person) setAge(input int) error {
 	const minAge = 18
 	const maxAge = 99
 
-	if input <= 0 {
-		return 0, fmt.Errorf("%w: Age cannot be empty or negative", ErrInvalidRange)
-
-	} else if input < minAge || input > maxAge {
-		return 0, fmt.Errorf("%w: Age must be between %d and %d", ErrInvalidRange, minAge, maxAge)
-
+	if input < minAge || input > maxAge {
+		return fmt.Errorf("%w: Age must be between %d and %d", ErrInvalidRange, minAge, maxAge)
 	}
 
-	return input, nil
+	p.age = input
+	return nil
 }
 
 func (p *Person) ID() string {
@@ -97,29 +92,56 @@ func (p *Person) Age() int {
 }
 
 func (m *PersonManager) NewPerson(rawName string, rawAge int) (*Person, error) {
-	name, err := setName(rawName)
-	if err != nil {
+	p := &Person{}
+
+	if err := p.setName(rawName); err != nil {
 		return nil, err
 	}
 
-	age, err := setAge(rawAge)
-	if err != nil {
+	if err := p.setAge(rawAge); err != nil {
 		return nil, err
 	}
 
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+	var id string
 
-	if m.registerName[name] {
-		return nil, fmt.Errorf("%w: Name already in use", ErrInvalidInput)
+	for {
+		generated, err := gonanoid.Generate(alphabet, 10)
+		if err != nil {
+			continue
+		}
+
+		m.Lock()
+		if m.registerName[p.name] {
+			m.Unlock()
+			return nil, fmt.Errorf("%w: Name already in use", ErrInvalidInput)
+		}
+
+		if _, exists := m.registerID[generated]; !exists {
+			id = generated
+			m.registerName[p.name] = true
+			m.registerID[id] = p.name
+			m.Unlock()
+			break
+		}
+		m.Unlock()
 	}
 
-	m.registerName[name] = true
+	p.id = id
+	return p, nil
+}
 
-	return &Person{
-		id:   generateId(),
-		name: name,
-		age:  age,
-	}, nil
+func (m *PersonManager) DeletePerson(id string) error {
+	m.Lock()
+	defer m.Unlock()
 
+	name, exists := m.registerID[id]
+	if !exists {
+		return fmt.Errorf("%w: Person ID not found", ErrInvalidInput)
+	}
+
+	delete(m.registerID, id)
+	delete(m.registerName, name)
+
+	return nil
 }
