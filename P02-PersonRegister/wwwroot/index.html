@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Person Register Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="main-container">
+        <section class="card form-card">
+            <header>
+                <h1>Register New Person</h1>
+            </header>
+            <form id="personForm">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" placeholder="Enter full name" required autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="age">Age (18 - 99)</label>
+                    <input type="number" id="age" name="age" placeholder="Enter age" min="18" max="99" required>
+                </div>
+                <button type="submit" id="btnSubmit">Register Person</button>
+            </form>
+        </section>
+
+        <section class="card table-card">
+            <header>
+                <h1>Registered Persons</h1>
+            </header>
+            <div class="table-wrapper">
+                <table id="personTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Age</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="empty-row">
+                            <td colspan="4">No data available</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <div id="statusModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-card">
+            <header>
+                <h3 id="modalTitle"></h3>
+            </header>
+            <section>
+                <p id="modalMessage"></p>
+            </section>
+            <footer>
+                <button type="button" id="btnCloseModal" class="btn-close">Tutup</button>
+            </footer>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
