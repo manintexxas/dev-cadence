@@ -1,6 +1,4 @@
 <Solution>
-  <Project Path="LoggerLib.Tests/LoggerLib.Tests.csproj" />
-  <Project Path="LoggerLib/LoggerLib.csproj" />
   <Project Path="Notifier.Tests/Notifier.Tests.csproj" />
   <Project Path="P01-Notifier/P01-Notifier.csproj" />
 </Solution>
